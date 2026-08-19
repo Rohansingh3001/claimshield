@@ -3,7 +3,7 @@ import pandas as pd
 import os
 
 def render():
-    st.markdown("<h1 style='margin-bottom: 0;'>Claims Queue</h1>", unsafe_allow_html=True)
+    st.markdown("<h1 class='gradient-text' style='margin-bottom: 0;'>Claims Queue</h1>", unsafe_allow_html=True)
     st.markdown("<p style='color: var(--text-muted); font-size: 1.1rem; margin-bottom: 2rem;'>Filter and search through all scored claims to prioritize investigations.</p>", unsafe_allow_html=True)
     
     data_path = "data/sample/ClaimShieldAI-Dataset.csv"
@@ -33,8 +33,8 @@ def render():
         df['Decision'] = df['Fraud_Risk_Score'].apply(get_decision)
         
     st.markdown("""
-    <div style='background-color: var(--card-bg); padding: 16px 24px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 20px;'>
-        <h4 style='margin-top: 0; color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase;'>Filters</h4>
+    <div class="metric-card" style="padding: 16px 24px; margin-bottom: 24px; animation: float 6s ease-in-out infinite;">
+        <h4 style='margin-top: 0; color: var(--primary); font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 800;'>Filters</h4>
     """, unsafe_allow_html=True)
     
     col1, col2, col3 = st.columns(3)
@@ -71,6 +71,9 @@ def render():
     # Keep only those that exist
     display_cols = [c for c in display_cols if c in filtered_df.columns]
     
-    st.markdown(f"<p style='color: var(--text-muted);'>Found <strong>{len(filtered_df):,}</strong> claims matching criteria.</p>", unsafe_allow_html=True)
+    st.markdown(f"<p style='color: var(--text-muted);'>Found <strong style='color: var(--primary); font-size: 1.2rem; text-shadow: 0 0 10px var(--primary-glow);'>{len(filtered_df):,}</strong> claims matching criteria.</p>", unsafe_allow_html=True)
+    
+    # Style the dataframe container
+    st.markdown("<div style='border: 1px solid var(--glass-border); border-radius: 12px; overflow: hidden;'>", unsafe_allow_html=True)
     st.dataframe(filtered_df[display_cols], use_container_width=True, hide_index=True)
-
+    st.markdown("</div>", unsafe_allow_html=True)

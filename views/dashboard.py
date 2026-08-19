@@ -5,7 +5,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 
 def render():
-    st.markdown("<h1 style='margin-bottom: 0;'>Executive Dashboard</h1>", unsafe_allow_html=True)
+    st.markdown("<h1 class='gradient-text' style='margin-bottom: 0;'>Executive Dashboard</h1>", unsafe_allow_html=True)
     st.markdown("<p style='color: var(--text-muted); font-size: 1.1rem; margin-bottom: 2rem;'>Overview of claims, fraud detection metrics, and financial exposure.</p>", unsafe_allow_html=True)
     
     # Load data for dashboard
@@ -41,28 +41,28 @@ def render():
     col1, col2, col3, col4 = st.columns(4)
     with col1:
         st.markdown(f"""
-        <div class="metric-card">
+        <div class="metric-card" style="animation: float 6s ease-in-out infinite;">
             <div class="metric-title" title="Total number of claims processed by the system.">Total Claims ℹ️</div>
             <div class="metric-value">{total_claims:,}</div>
         </div>
         """, unsafe_allow_html=True)
     with col2:
         st.markdown(f"""
-        <div class="metric-card" style="border-bottom: 4px solid var(--danger);">
+        <div class="metric-card" style="border-bottom: 4px solid var(--danger); animation: float 6s ease-in-out infinite 0.5s;">
             <div class="metric-title" title="Claims with a Fraud Risk Score above 70/100.">High Risk Claims ℹ️</div>
-            <div class="metric-value" style="color: var(--danger)">{high_risk_claims:,}</div>
+            <div class="metric-value" style="color: var(--danger); text-shadow: 0 0 15px var(--danger-glow);">{high_risk_claims:,}</div>
         </div>
         """, unsafe_allow_html=True)
     with col3:
         st.markdown(f"""
-        <div class="metric-card" style="border-bottom: 4px solid var(--warning);">
+        <div class="metric-card" style="border-bottom: 4px solid var(--warning); animation: float 6s ease-in-out infinite 1s;">
             <div class="metric-title" title="Sum of Claim Amounts for all High Risk claims.">Est. Exposure ℹ️</div>
-            <div class="metric-value" style="color: var(--warning)">{exposure_str}</div>
+            <div class="metric-value" style="color: var(--warning); text-shadow: 0 0 15px var(--warning-glow);">{exposure_str}</div>
         </div>
         """, unsafe_allow_html=True)
     with col4:
         st.markdown(f"""
-        <div class="metric-card">
+        <div class="metric-card" style="animation: float 6s ease-in-out infinite 1.5s;">
             <div class="metric-title" title="Percentage of historical claims flagged as fraudulent.">Historical Fraud Rate ℹ️</div>
             <div class="metric-value">{fraud_rate:.1f}%</div>
         </div>
@@ -72,11 +72,11 @@ def render():
     
     col1, col2 = st.columns(2)
     
-    # Plotly dark theme layout base
+    # Plotly premium dark theme layout base
     dark_layout = dict(
         plot_bgcolor='rgba(0,0,0,0)', 
         paper_bgcolor='rgba(0,0,0,0)', 
-        font=dict(color='#94A3B8'),
+        font=dict(color='#94A3B8', family='Outfit'),
         margin=dict(l=20, r=20, t=40, b=20),
         xaxis=dict(gridcolor='rgba(255,255,255,0.05)', zerolinecolor='rgba(255,255,255,0.05)'),
         yaxis=dict(gridcolor='rgba(255,255,255,0.05)', zerolinecolor='rgba(255,255,255,0.05)')
@@ -85,7 +85,11 @@ def render():
     with col1:
         st.markdown("<h3 style='font-size: 1.1rem; color: var(--text);'>Risk Score Distribution</h3>", unsafe_allow_html=True)
         fig1 = px.histogram(df, x='Fraud_Risk_Score', nbins=20, 
-                           color_discrete_sequence=['#6366F1'])
+                           color_discrete_sequence=['#4F46E5'])
+        
+        # Add glow effect to bars
+        fig1.update_traces(marker=dict(line=dict(width=1, color='#EC4899')))
+        
         fig1.update_layout(**dark_layout, showlegend=False, bargap=0.1)
         # Add risk threshold lines
         fig1.add_vline(x=30, line_dash="dash", line_color="#10B981", annotation_text="Low", annotation_position="top left")
@@ -99,8 +103,10 @@ def render():
             sample_df = df.sample(min(1500, len(df)))
             fig2 = px.scatter(sample_df, x='Claim_Amount', y='Fraud_Risk_Score', 
                              color='Fraud_Risk_Score', 
-                             color_continuous_scale=['#10B981', '#F59E0B', '#EF4444'],
-                             opacity=0.6)
+                             color_continuous_scale=['#10B981', '#4F46E5', '#EC4899', '#EF4444'],
+                             opacity=0.7)
+            
+            fig2.update_traces(marker=dict(size=8, line=dict(width=0.5, color='rgba(255,255,255,0.5)')))
             fig2.update_layout(**dark_layout, coloraxis_showscale=False)
             fig2.add_hline(y=70, line_dash="dot", line_color="#EF4444")
             st.plotly_chart(fig2, use_container_width=True)
