@@ -1,0 +1,8 @@
+{
+    "selected_model": "xgboost",
+    "models_available": [
+        "LogisticRegression",
+        "RandomForest",
+        "XGBoost"
+    ]
+}
