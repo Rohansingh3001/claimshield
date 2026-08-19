@@ -114,6 +114,7 @@ st.sidebar.markdown("""
 
 pages = {
     "📊 Executive Dashboard": "views.dashboard",
+    "✨ New Claim Simulator": "views.predict",
     "🔍 Claim Investigation": "views.investigation",
     "📑 Claims Queue": "views.claims",
     "⚙️ Model Performance": "views.model_performance"
