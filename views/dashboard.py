@@ -41,28 +41,28 @@ def render():
     col1, col2, col3, col4 = st.columns(4)
     with col1:
         st.markdown(f"""
-        <div class="metric-card" style="animation: float 6s ease-in-out infinite;">
+        <div class="metric-card">
             <div class="metric-title" title="Total number of claims processed by the system.">Total Claims ℹ️</div>
             <div class="metric-value">{total_claims:,}</div>
         </div>
         """, unsafe_allow_html=True)
     with col2:
         st.markdown(f"""
-        <div class="metric-card" style="border-bottom: 4px solid var(--danger); animation: float 6s ease-in-out infinite 0.5s;">
+        <div class="metric-card" style="border-top: 4px solid var(--danger);">
             <div class="metric-title" title="Claims with a Fraud Risk Score above 70/100.">High Risk Claims ℹ️</div>
-            <div class="metric-value" style="color: var(--danger); text-shadow: 0 0 15px var(--danger-glow);">{high_risk_claims:,}</div>
+            <div class="metric-value" style="color: var(--danger);">{high_risk_claims:,}</div>
         </div>
         """, unsafe_allow_html=True)
     with col3:
         st.markdown(f"""
-        <div class="metric-card" style="border-bottom: 4px solid var(--warning); animation: float 6s ease-in-out infinite 1s;">
+        <div class="metric-card" style="border-top: 4px solid var(--warning);">
             <div class="metric-title" title="Sum of Claim Amounts for all High Risk claims.">Est. Exposure ℹ️</div>
-            <div class="metric-value" style="color: var(--warning); text-shadow: 0 0 15px var(--warning-glow);">{exposure_str}</div>
+            <div class="metric-value" style="color: var(--warning);">{exposure_str}</div>
         </div>
         """, unsafe_allow_html=True)
     with col4:
         st.markdown(f"""
-        <div class="metric-card" style="animation: float 6s ease-in-out infinite 1.5s;">
+        <div class="metric-card">
             <div class="metric-title" title="Percentage of historical claims flagged as fraudulent.">Historical Fraud Rate ℹ️</div>
             <div class="metric-value">{fraud_rate:.1f}%</div>
         </div>
@@ -72,23 +72,23 @@ def render():
     
     col1, col2 = st.columns(2)
     
-    # Plotly premium dark theme layout base
+    # Plotly corporate dark theme layout base
     dark_layout = dict(
         plot_bgcolor='rgba(0,0,0,0)', 
         paper_bgcolor='rgba(0,0,0,0)', 
-        font=dict(color='#94A3B8', family='Outfit'),
+        font=dict(color='#94A3B8', family='Inter'),
         margin=dict(l=20, r=20, t=40, b=20),
-        xaxis=dict(gridcolor='rgba(255,255,255,0.05)', zerolinecolor='rgba(255,255,255,0.05)'),
-        yaxis=dict(gridcolor='rgba(255,255,255,0.05)', zerolinecolor='rgba(255,255,255,0.05)')
+        xaxis=dict(gridcolor='#334155', zerolinecolor='#334155'),
+        yaxis=dict(gridcolor='#334155', zerolinecolor='#334155')
     )
     
     with col1:
         st.markdown("<h3 style='font-size: 1.1rem; color: var(--text);'>Risk Score Distribution</h3>", unsafe_allow_html=True)
         fig1 = px.histogram(df, x='Fraud_Risk_Score', nbins=20, 
-                           color_discrete_sequence=['#4F46E5'])
+                           color_discrete_sequence=['#3B82F6'])
         
-        # Add glow effect to bars
-        fig1.update_traces(marker=dict(line=dict(width=1, color='#EC4899')))
+        # Add border to bars for crisp look
+        fig1.update_traces(marker=dict(line=dict(width=1, color='#1E293B')))
         
         fig1.update_layout(**dark_layout, showlegend=False, bargap=0.1)
         # Add risk threshold lines
@@ -103,10 +103,10 @@ def render():
             sample_df = df.sample(min(1500, len(df)))
             fig2 = px.scatter(sample_df, x='Claim_Amount', y='Fraud_Risk_Score', 
                              color='Fraud_Risk_Score', 
-                             color_continuous_scale=['#10B981', '#4F46E5', '#EC4899', '#EF4444'],
-                             opacity=0.7)
+                             color_continuous_scale=['#10B981', '#3B82F6', '#1E40AF', '#EF4444'],
+                             opacity=0.8)
             
-            fig2.update_traces(marker=dict(size=8, line=dict(width=0.5, color='rgba(255,255,255,0.5)')))
+            fig2.update_traces(marker=dict(size=7, line=dict(width=0.5, color='#0F172A')))
             fig2.update_layout(**dark_layout, coloraxis_showscale=False)
             fig2.add_hline(y=70, line_dash="dot", line_color="#EF4444")
             st.plotly_chart(fig2, use_container_width=True)
