@@ -2,6 +2,14 @@ venv/
 __pycache__/
 *.pyc
 .ipynb_checkpoints/
-data/sample/*.csv
-models/*.pkl
 .env
+
+# Ignore large datasets by default but allow the required MVP sample
+data/sample/*.csv
+!data/sample/ClaimShieldAI-Dataset.csv
+
+# Ignore large models (like randomforest.pkl >100MB) but allow others
+models/*.pkl
+!models/xgboost.pkl
+!models/logisticregression.pkl
+!models/preprocessor.pkl
