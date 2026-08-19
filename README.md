@@ -1,6 +1,6 @@
 # ClaimShield AI
 
-Insurance Fraud Detection & Investigation Platform MVP.
+Insurance Fraud Detection & Investigation Platform.
 
 ## Overview
 

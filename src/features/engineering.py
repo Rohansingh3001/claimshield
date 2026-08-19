@@ -20,7 +20,7 @@ class FeatureEngineer:
     def process_dates(self):
         """Extracts date features if any date columns exist."""
         date_cols = self.df.select_dtypes(include=['datetime64', 'object']).columns
-        # For simplicity in MVP, we just look for common date column names or assume they are parsed elsewhere.
+        # For simplicity in this version, we just look for common date column names or assume they are parsed elsewhere.
         # This dataset might not have dates, so we skip if none are obvious datetime objects.
         return self.df
 

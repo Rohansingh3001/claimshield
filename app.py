@@ -132,7 +132,7 @@ with st.sidebar.expander("ℹ️ How it Works"):
     """)
 
 st.sidebar.markdown("---")
-st.sidebar.caption("Hackathon MVP v2.0 | High-Contrast Mode")
+st.sidebar.caption("Production Build v2.0 | High-Contrast Mode")
 
 # Dynamically load the selected page
 import importlib
