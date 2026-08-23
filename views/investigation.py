@@ -1,14 +1,17 @@
 import streamlit as st
 import pandas as pd
 import os
+import joblib
+from src.features.engineering import FeatureEngineer
+from src.ml.explain import ModelExplainer
 
 def render():
     st.markdown("<h1 class='text-primary' style='margin-bottom: 0;'>Claim Investigation</h1>", unsafe_allow_html=True)
     st.markdown("<p style='color: var(--text-muted); font-size: 1.1rem; margin-bottom: 2rem;'>Deep dive into a specific claim's risk profile and AI explanation.</p>", unsafe_allow_html=True)
     
-    data_path = "data/sample/ClaimShieldAI-Dataset.csv"
+    data_path = "data/sample/Scored-Dataset.csv"
     if not os.path.exists(data_path):
-        st.warning("Dataset not found. Please run the ML pipeline first.")
+        st.warning("Scored dataset not found. Please run the ML pipeline first.")
         return
         
     @st.cache_data
@@ -31,8 +34,8 @@ def render():
         st.markdown("<hr style='border-color: var(--border); margin: 2rem 0;'>", unsafe_allow_html=True)
         claim_data = df[df['Claim_ID'] == selected_claim_id].iloc[0]
         
-        # Risk Score Mocking if not run
-        risk_score = claim_data.get('Fraud_Risk_Score', 89) 
+        # We now have the actual ML-generated risk score from the batch process
+        risk_score = int(claim_data.get('Fraud_Risk_Score', 0))
         
         if risk_score > 70:
             risk_label = "HIGH RISK"
@@ -61,8 +64,8 @@ def render():
                 <div style='display: grid; grid-template-columns: 1fr 1fr; gap: 24px; font-size: 1.05rem;'>
                     <div><span style='color: var(--text-muted)'>Customer:</span> <strong style="color: var(--text)">{claim_data.get('Customer_ID', 'N/A')}</strong></div>
                     <div><span style='color: var(--text-muted)'>Policy No:</span> <strong style="color: var(--text)">{claim_data.get('Policy_Number', 'N/A')}</strong></div>
-                    <div><span style='color: var(--text-muted)'>Claim Amt:</span> <strong style="color: var(--primary)">₹{claim_data.get('Claim_Amount', 0):,.2f}</strong></div>
-                    <div><span style='color: var(--text-muted)'>Coverage:</span> <strong style="color: var(--text)">₹{claim_data.get('Coverage_Amount', 0):,.2f}</strong></div>
+                    <div><span style='color: var(--text-muted)'>Claim Amt:</span> <strong style="color: var(--primary)">${claim_data.get('Claim_Amount', 0):,.2f}</strong></div>
+                    <div><span style='color: var(--text-muted)'>Coverage:</span> <strong style="color: var(--text)">${claim_data.get('Coverage_Amount', 0):,.2f}</strong></div>
                     <div><span style='color: var(--text-muted)'>Claim Type:</span> <strong style="color: var(--text)">{claim_data.get('Claim_Type', 'N/A')}</strong></div>
                     <div><span style='color: var(--text-muted)'>Policy Type:</span> <strong style="color: var(--text)">{claim_data.get('Policy_Type', 'N/A')}</strong></div>
                 </div>
@@ -82,32 +85,66 @@ def render():
             
         st.markdown("<br>", unsafe_allow_html=True)
         
+        # --- Real SHAP Generation ---
+        top_contributions = []
+        if os.path.exists("models/preprocessor.pkl") and os.path.exists("models/xgboost.pkl"):
+            try:
+                preprocessor = joblib.load("models/preprocessor.pkl")
+                model = joblib.load("models/xgboost.pkl")
+                
+                # We need to drop leakage/id columns as run_pipeline does, but we only have 1 row here.
+                # Actually, the DataPreprocessor.transform just uses the features it was fitted on.
+                # It's better to pass the DataFrame with all the columns the preprocessor expects.
+                input_df = df[df['Claim_ID'] == selected_claim_id].copy()
+                engineer = FeatureEngineer(input_df)
+                df_engineered = engineer.engineer_features()
+                
+                # preprocessor.transform will automatically select only the columns it needs
+                X_processed = preprocessor.transform(df_engineered)
+                
+                explainer = ModelExplainer(model, X_processed)
+                X_processed_df = pd.DataFrame(X_processed, columns=preprocessor.feature_names_out_)
+                contributions, base_value = explainer.get_explanation(X_processed_df)
+                top_contributions = contributions[:4] if contributions else []
+                
+            except Exception as e:
+                st.warning(f"Could not generate live SHAP values: {e}")
+        else:
+            st.warning("Model artifacts missing for SHAP explanation.")
+
         col3, col4 = st.columns([1.5, 1])
         
         with col3:
             st.markdown("<h3 style='font-size: 1.2rem; color: var(--text-muted);'>STEP 3: Why was this decision made?</h3>", unsafe_allow_html=True)
             st.markdown("""
             <div class="metric-card" style="margin-bottom: 15px; padding: 15px 24px;">
-                <p style='margin: 0; color: var(--text-muted);'>The <span style='color: var(--primary); font-weight: 600;'>XGBoost Model</span> analyzed 30+ features. Here are the top factors altering the risk score:</p>
+                <p style='margin: 0; color: var(--text-muted);'>The <span style='color: var(--primary); font-weight: 600;'>XGBoost Model</span> analyzed all features. Here are the top factors altering the risk score:</p>
             </div>
             """, unsafe_allow_html=True)
             
             with st.expander("View AI Reasoning (SHAP)", expanded=True):
-                st.markdown(f"""
-                <div style="background: var(--background); padding: 20px; border-radius: 8px; border: 1px solid var(--border);">
-                    <div style="margin-bottom: 12px; display: flex; align-items: center;"><div><strong style="color: var(--danger)">+12 Risk:</strong> The `Claim_Amount` (₹{claim_data.get('Claim_Amount', 0):,.0f}) is unusually high compared to the `Coverage_Amount`.</div></div>
-                    <div style="margin-bottom: 12px; display: flex; align-items: center;"><div><strong style="color: var(--danger)">+8 Risk:</strong> The `Age` of the claimant ({claim_data.get('Age', 30)}) matches historical high-risk patterns.</div></div>
-                    <div style="display: flex; align-items: center;"><div><strong style="color: var(--success)">-4 Risk:</strong> The `Credit_Score` ({claim_data.get('Credit_Score', 700)}) is excellent, indicating financial stability.</div></div>
-                </div>
-                """, unsafe_allow_html=True)
-                st.caption("*(Note: In the full production build, this plain text is dynamically generated from SHAP values using the `explain.py` module.)*")
+                shap_html = f"""<div style="background: var(--background); padding: 20px; border-radius: 8px; border: 1px solid var(--border);">"""
+                
+                if not top_contributions:
+                    shap_html += "<div>No SHAP explanations available.</div>"
+                else:
+                    for c in top_contributions:
+                        val = c['Contribution']
+                        feat = c['Feature'].replace('num__', '').replace('cat__', '')
+                        if val > 0:
+                            shap_html += f'<div style="margin-bottom: 12px; display: flex; align-items: center;"><div><strong style="color: var(--danger)">+{val:.3f} Risk:</strong> The feature `{feat}` significantly increased the risk score.</div></div>'
+                        else:
+                            shap_html += f'<div style="margin-bottom: 12px; display: flex; align-items: center;"><div><strong style="color: var(--success)">{val:.3f} Risk:</strong> The feature `{feat}` decreased the risk score.</div></div>'
+                    
+                shap_html += "</div>"
+                st.markdown(shap_html, unsafe_allow_html=True)
 
         with col4:
             st.markdown("<h3 style='font-size: 1.2rem; color: var(--text-muted);'>STEP 4: Business Impact</h3>", unsafe_allow_html=True)
             st.markdown(f"""
             <div class="metric-card" style="border-top: 4px solid var(--warning);">
                 <div class="metric-title">Estimated Financial Exposure</div>
-                <div class="metric-value" style="color: var(--warning);">₹{exposure:,.0f}</div>
+                <div class="metric-value" style="color: var(--warning);">${exposure:,.0f}</div>
                 <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 15px; margin-bottom: 0; line-height: 1.4;">Calculated as (Claim Amount × Probability of Fraud). Prioritize investigations with high exposure.</p>
             </div>
             """, unsafe_allow_html=True)
@@ -121,6 +158,4 @@ def render():
             'Historical Outcome': ['Fraud', 'Fraud', 'Genuine']
         })
         
-        # Style dataframe for dark mode
         st.dataframe(sim_data, use_container_width=True, hide_index=True)
-

@@ -6,9 +6,9 @@ def render():
     st.markdown("<h1 class='text-primary' style='margin-bottom: 0;'>Claims Queue</h1>", unsafe_allow_html=True)
     st.markdown("<p style='color: var(--text-muted); font-size: 1.1rem; margin-bottom: 2rem;'>Filter and search through all scored claims to prioritize investigations.</p>", unsafe_allow_html=True)
     
-    data_path = "data/sample/ClaimShieldAI-Dataset.csv"
+    data_path = "data/sample/Scored-Dataset.csv"
     if not os.path.exists(data_path):
-        st.warning("Dataset not found. Please run the ML pipeline first.")
+        st.warning("Scored dataset not found. Please run the ML pipeline first.")
         return
         
     @st.cache_data
@@ -18,11 +18,10 @@ def render():
         
     df = load_data()
     
-    # Mock Risk Scores if not present
+    # The Fraud_Risk_Score should be present in the Scored-Dataset.csv
     if 'Fraud_Risk_Score' not in df.columns:
-        import numpy as np
-        np.random.seed(42)
-        df['Fraud_Risk_Score'] = np.random.randint(10, 95, size=len(df))
+        st.error("Fraud_Risk_Score column missing from Scored-Dataset.csv")
+        return
         
     def get_decision(score):
         if score > 70: return 'INVESTIGATE'

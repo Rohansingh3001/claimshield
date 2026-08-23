@@ -1,10 +1,14 @@
 import streamlit as st
 import pandas as pd
 import time
+import joblib
+import os
+from src.features.engineering import FeatureEngineer
+from src.ml.explain import ModelExplainer
 
 def render():
     st.markdown("<h1 class='text-primary' style='margin-bottom: 0;'>New Claim Validator</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='color: var(--text-muted); font-size: 1.1rem; margin-bottom: 2rem;'>Run a live AI assessment on a new insurance claim.</p>", unsafe_allow_html=True)
+    st.markdown("<p style='color: var(--text-muted); font-size: 1.1rem; margin-bottom: 2rem;'>Run a live AI assessment on a new insurance claim using the trained XGBoost model.</p>", unsafe_allow_html=True)
     
     st.markdown("<h3 style='font-size: 1.1rem; color: var(--text); margin-bottom: 15px;'>Enter Claim Details</h3>", unsafe_allow_html=True)
     
@@ -14,78 +18,71 @@ def render():
         with col1:
             st.markdown("<p style='font-size: 0.9rem; color: var(--text-muted); margin-bottom: 5px;'>Policyholder Information</p>", unsafe_allow_html=True)
             age = st.number_input("Age", min_value=18, max_value=100, value=35)
+            gender = st.selectbox("Gender", ["Male", "Female"])
+            region = st.selectbox("Region", ["North", "South", "East", "West"])
             credit_score = st.slider("Credit Score", min_value=300, max_value=850, value=700)
             
             st.markdown("<br><p style='font-size: 0.9rem; color: var(--text-muted); margin-bottom: 5px;'>Policy Details</p>", unsafe_allow_html=True)
             policy_type = st.selectbox("Policy Type", ["Auto", "Home", "Health", "Life"])
             coverage_amt = st.number_input("Total Coverage Amount ($)", min_value=1000, max_value=1000000, value=50000, step=1000)
+            premium_amt = st.number_input("Premium Amount ($)", min_value=100, max_value=50000, value=1500, step=100)
             
         with col2:
             st.markdown("<p style='font-size: 0.9rem; color: var(--text-muted); margin-bottom: 5px;'>Incident Information</p>", unsafe_allow_html=True)
-            claim_type = st.selectbox("Claim Type", ["Collision", "Theft", "Property Damage", "Medical", "Fire"])
+            claim_type = st.selectbox("Claim Type", ["Collision", "Theft", "Property Damage", "Medical", "Fire", "Accident"])
             claim_amt = st.number_input("Requested Claim Amount ($)", min_value=100, max_value=1000000, value=8000, step=500)
-            incident_severity = st.selectbox("Reported Severity", ["Minor", "Moderate", "Major", "Total Loss"])
-            witnesses = st.number_input("Number of Witnesses", min_value=0, max_value=10, value=0)
             
         st.markdown("<br>", unsafe_allow_html=True)
         submitted = st.form_submit_button("Run AI Assessment", type="primary")
         
     if submitted:
-        with st.spinner("Initializing XGBoost Model Pipeline..."):
-            time.sleep(0.8) # Simulate processing time for effect
+        if not os.path.exists("models/preprocessor.pkl") or not os.path.exists("models/xgboost.pkl"):
+            st.error("Model artifacts not found! Please run the ML pipeline first.")
+            return
+
+        with st.spinner("Loading XGBoost Model Pipeline..."):
+            preprocessor = joblib.load("models/preprocessor.pkl")
+            model = joblib.load("models/xgboost.pkl")
             
         with st.spinner("Extracting features and calculating SHAP values..."):
-            time.sleep(1.2)
+            # Prepare input data
+            input_data = pd.DataFrame({
+                'Age': [age],
+                'Gender': [gender],
+                'Region': [region],
+                'Credit_Score': [credit_score],
+                'Policy_Type': [policy_type],
+                'Coverage_Amount': [coverage_amt],
+                'Premium_Amount': [premium_amt],
+                'Claim_Type': [claim_type],
+                'Claim_Amount': [claim_amt]
+            })
             
+            # Feature Engineering
+            engineer = FeatureEngineer(input_data)
+            df_engineered = engineer.engineer_features()
+            
+            # Preprocessing
+            X_processed = preprocessor.transform(df_engineered)
+            
+            # Prediction
+            fraud_prob = model.predict_proba(X_processed)[0][1]
+            total_risk = int(fraud_prob * 100)
+            
+            # SHAP Explanation
+            try:
+                explainer = ModelExplainer(model, X_processed)
+                
+                X_processed_df = pd.DataFrame(X_processed, columns=preprocessor.feature_names_out_)
+                contributions, base_value = explainer.get_explanation(X_processed_df)
+                
+                top_contributions = contributions[:4] if contributions else []
+                
+            except Exception as e:
+                top_contributions = []
+                st.warning(f"Could not generate SHAP values: {e}")
+
         st.markdown("<hr style='border-color: var(--border); margin: 2rem 0;'>", unsafe_allow_html=True)
-        
-        # --- SIMULATED INFERENCE LOGIC ---
-        # This simulates a real ML model's output based on logical rules for the hackathon
-        base_score = 15
-        
-        # Risk factors
-        ratio = claim_amt / coverage_amt if coverage_amt > 0 else 1
-        ratio_penalty = 0
-        if ratio > 0.8:
-            ratio_penalty = 40
-        elif ratio > 0.5:
-            ratio_penalty = 15
-            
-        credit_penalty = 0
-        if credit_score < 500:
-            credit_penalty = 25
-        elif credit_score < 600:
-            credit_penalty = 10
-            
-        witness_penalty = 0
-        if witnesses == 0 and claim_amt > 20000:
-            witness_penalty = 20
-        elif witnesses > 1:
-            witness_penalty = -5
-            
-        severity_penalty = 0
-        if incident_severity == "Total Loss" and claim_amt < 5000:
-            severity_penalty = 15 # Suspiciously cheap total loss
-            
-        age_penalty = 0
-        if age < 25:
-            age_penalty = 12
-        elif age > 60:
-            age_penalty = -3
-            
-        type_penalty = 0
-        if claim_type in ["Theft", "Fire"]:
-            type_penalty = 15
-            
-        mismatch_penalty = 0
-        if policy_type == "Auto" and claim_type == "Medical":
-            mismatch_penalty = 10
-        elif policy_type == "Health" and claim_type in ["Collision", "Property Damage", "Fire", "Theft"]:
-            mismatch_penalty = 30
-        elif policy_type == "Home" and claim_type in ["Collision", "Medical"]:
-            mismatch_penalty = 25
-            
-        total_risk = min(99, max(0, base_score + ratio_penalty + credit_penalty + witness_penalty + severity_penalty + age_penalty + type_penalty + mismatch_penalty))
         
         # Determine styling based on score
         if total_risk > 70:
@@ -123,37 +120,18 @@ def render():
         with col2:
             st.markdown("<h3 style='font-size: 1.1rem; color: var(--text-muted);'>SHAP Explanation</h3>", unsafe_allow_html=True)
             
-            # Dynamically generate SHAP reasons based on inputs
             shap_html = f"""<div style="background: var(--background); padding: 20px; border-radius: 8px; border: 1px solid var(--border); height: 100%;">"""
             
-            if ratio_penalty > 0:
-                shap_html += f'<div style="margin-bottom: 12px; display: flex; align-items: center;"><div><strong style="color: var(--danger)">+{ratio_penalty} Risk:</strong> Claim amount (${claim_amt:,}) is dangerously close to or exceeds the policy limit (${coverage_amt:,}).</div></div>'
+            if not top_contributions:
+                shap_html += "<div>No SHAP explanations available.</div>"
             else:
-                shap_html += f'<div style="margin-bottom: 12px; display: flex; align-items: center;"><div><strong style="color: var(--success)">-5 Risk:</strong> Claim amount (${claim_amt:,}) is well within normal bounds for the policy limit.</div></div>'
-                
-            if credit_penalty > 0:
-                shap_html += f'<div style="margin-bottom: 12px; display: flex; align-items: center;"><div><strong style="color: var(--danger)">+{credit_penalty} Risk:</strong> Credit score ({credit_score}) indicates potential financial distress, increasing moral hazard.</div></div>'
-            else:
-                shap_html += f'<div style="margin-bottom: 12px; display: flex; align-items: center;"><div><strong style="color: var(--success)">-4 Risk:</strong> High credit score ({credit_score}) indicates financial stability.</div></div>'
-                
-            if witness_penalty > 0:
-                shap_html += f'<div style="margin-bottom: 12px; display: flex; align-items: center;"><div><strong style="color: var(--danger)">+{witness_penalty} Risk:</strong> Extremely high claim value with zero witnesses reported.</div></div>'
-            elif witness_penalty < 0:
-                shap_html += f'<div style="margin-bottom: 12px; display: flex; align-items: center;"><div><strong style="color: var(--success)">{witness_penalty} Risk:</strong> Multiple witnesses ({witnesses}) strongly corroborate the claim.</div></div>'
-                
-            if severity_penalty > 0:
-                shap_html += f'<div style="margin-bottom: 12px; display: flex; align-items: center;"><div><strong style="color: var(--danger)">+{severity_penalty} Risk:</strong> Unusually low claim amount for a "Total Loss" severity report.</div></div>'
-                
-            if age_penalty > 0:
-                shap_html += f'<div style="margin-bottom: 12px; display: flex; align-items: center;"><div><strong style="color: var(--warning)">+{age_penalty} Risk:</strong> Young policyholder age ({age}) historically correlates with higher claim frequency.</div></div>'
-            elif age_penalty < 0:
-                shap_html += f'<div style="margin-bottom: 12px; display: flex; align-items: center;"><div><strong style="color: var(--success)">{age_penalty} Risk:</strong> Mature policyholder age ({age}) indicates a statistically stable history.</div></div>'
-                
-            if type_penalty > 0:
-                shap_html += f'<div style="margin-bottom: 12px; display: flex; align-items: center;"><div><strong style="color: var(--warning)">+{type_penalty} Risk:</strong> Claim type ({claim_type}) has a statistically higher rate of fraudulent submissions.</div></div>'
-                
-            if mismatch_penalty > 0:
-                shap_html += f'<div style="margin-bottom: 12px; display: flex; align-items: center;"><div><strong style="color: var(--danger)">+{mismatch_penalty} Risk:</strong> Suspicious mismatch between Policy Type ({policy_type}) and Claim Type ({claim_type}).</div></div>'
+                for c in top_contributions:
+                    val = c['Contribution']
+                    feat = c['Feature'].replace('num__', '').replace('cat__', '')
+                    if val > 0:
+                        shap_html += f'<div style="margin-bottom: 12px; display: flex; align-items: center;"><div><strong style="color: var(--danger)">+{val:.3f} Risk:</strong> The feature `{feat}` significantly increased the risk score.</div></div>'
+                    else:
+                        shap_html += f'<div style="margin-bottom: 12px; display: flex; align-items: center;"><div><strong style="color: var(--success)">{val:.3f} Risk:</strong> The feature `{feat}` decreased the risk score.</div></div>'
                 
             shap_html += "</div>"
             st.markdown(shap_html, unsafe_allow_html=True)
