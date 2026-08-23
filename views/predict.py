@@ -3,7 +3,7 @@ import pandas as pd
 import time
 
 def render():
-    st.markdown("<h1 class='text-primary' style='margin-bottom: 0;'>New Claim Prediction</h1>", unsafe_allow_html=True)
+    st.markdown("<h1 class='text-primary' style='margin-bottom: 0;'>New Claim Validator</h1>", unsafe_allow_html=True)
     st.markdown("<p style='color: var(--text-muted); font-size: 1.1rem; margin-bottom: 2rem;'>Run a live AI assessment on a new insurance claim.</p>", unsafe_allow_html=True)
     
     st.markdown("<h3 style='font-size: 1.1rem; color: var(--text); margin-bottom: 15px;'>Enter Claim Details</h3>", unsafe_allow_html=True)
@@ -60,12 +60,32 @@ def render():
         witness_penalty = 0
         if witnesses == 0 and claim_amt > 20000:
             witness_penalty = 20
+        elif witnesses > 1:
+            witness_penalty = -5
             
         severity_penalty = 0
         if incident_severity == "Total Loss" and claim_amt < 5000:
             severity_penalty = 15 # Suspiciously cheap total loss
             
-        total_risk = min(99, base_score + ratio_penalty + credit_penalty + witness_penalty + severity_penalty)
+        age_penalty = 0
+        if age < 25:
+            age_penalty = 12
+        elif age > 60:
+            age_penalty = -3
+            
+        type_penalty = 0
+        if claim_type in ["Theft", "Fire"]:
+            type_penalty = 15
+            
+        mismatch_penalty = 0
+        if policy_type == "Auto" and claim_type == "Medical":
+            mismatch_penalty = 10
+        elif policy_type == "Health" and claim_type in ["Collision", "Property Damage", "Fire", "Theft"]:
+            mismatch_penalty = 30
+        elif policy_type == "Home" and claim_type in ["Collision", "Medical"]:
+            mismatch_penalty = 25
+            
+        total_risk = min(99, max(0, base_score + ratio_penalty + credit_penalty + witness_penalty + severity_penalty + age_penalty + type_penalty + mismatch_penalty))
         
         # Determine styling based on score
         if total_risk > 70:
@@ -118,9 +138,22 @@ def render():
                 
             if witness_penalty > 0:
                 shap_html += f'<div style="margin-bottom: 12px; display: flex; align-items: center;"><div><strong style="color: var(--danger)">+{witness_penalty} Risk:</strong> Extremely high claim value with zero witnesses reported.</div></div>'
+            elif witness_penalty < 0:
+                shap_html += f'<div style="margin-bottom: 12px; display: flex; align-items: center;"><div><strong style="color: var(--success)">{witness_penalty} Risk:</strong> Multiple witnesses ({witnesses}) strongly corroborate the claim.</div></div>'
                 
             if severity_penalty > 0:
                 shap_html += f'<div style="margin-bottom: 12px; display: flex; align-items: center;"><div><strong style="color: var(--danger)">+{severity_penalty} Risk:</strong> Unusually low claim amount for a "Total Loss" severity report.</div></div>'
+                
+            if age_penalty > 0:
+                shap_html += f'<div style="margin-bottom: 12px; display: flex; align-items: center;"><div><strong style="color: var(--warning)">+{age_penalty} Risk:</strong> Young policyholder age ({age}) historically correlates with higher claim frequency.</div></div>'
+            elif age_penalty < 0:
+                shap_html += f'<div style="margin-bottom: 12px; display: flex; align-items: center;"><div><strong style="color: var(--success)">{age_penalty} Risk:</strong> Mature policyholder age ({age}) indicates a statistically stable history.</div></div>'
+                
+            if type_penalty > 0:
+                shap_html += f'<div style="margin-bottom: 12px; display: flex; align-items: center;"><div><strong style="color: var(--warning)">+{type_penalty} Risk:</strong> Claim type ({claim_type}) has a statistically higher rate of fraudulent submissions.</div></div>'
+                
+            if mismatch_penalty > 0:
+                shap_html += f'<div style="margin-bottom: 12px; display: flex; align-items: center;"><div><strong style="color: var(--danger)">+{mismatch_penalty} Risk:</strong> Suspicious mismatch between Policy Type ({policy_type}) and Claim Type ({claim_type}).</div></div>'
                 
             shap_html += "</div>"
             st.markdown(shap_html, unsafe_allow_html=True)

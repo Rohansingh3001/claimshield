@@ -112,11 +112,10 @@ st.sidebar.markdown("""
 """, unsafe_allow_html=True)
 
 pages = {
-    "Executive Dashboard": "views.dashboard",
-    "New Claim Simulator": "views.predict",
+    "New Claim Validator": "views.predict",
+    "Executive Dashboard & Model Performance": "views.dashboard",
     "Claim Investigation": "views.investigation",
-    "Claims Queue": "views.claims",
-    "Model Performance": "views.model_performance"
+    "Claims Queue": "views.claims"
 }
 
 selection = st.sidebar.radio("Navigation", list(pages.keys()), label_visibility="collapsed")
