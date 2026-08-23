@@ -69,6 +69,10 @@ def render():
             fraud_prob = model.predict_proba(X_processed)[0][1]
             total_risk = int(fraud_prob * 100)
             
+            # Save to session state for later storing
+            st.session_state['last_assessment'] = input_data.copy()
+            st.session_state['last_assessment']['Fraud_Risk_Score'] = total_risk
+            
             # SHAP Explanation
             try:
                 explainer = ModelExplainer(model, X_processed)
@@ -143,3 +147,29 @@ def render():
             <div class="metric-value" style="color: var(--warning); font-size: 1.5rem;">${exposure:,.0f}</div>
         </div>
         """, unsafe_allow_html=True)
+        
+    if 'last_assessment' in st.session_state:
+        st.markdown("<hr style='border-color: var(--border); margin: 2rem 0;'>", unsafe_allow_html=True)
+        st.markdown("<h3 style='font-size: 1.1rem; color: var(--text);'>Store Assessment</h3>", unsafe_allow_html=True)
+        st.markdown("<p style='color: var(--text-muted); font-size: 0.9rem;'>Save this AI-assessed claim to the database so it appears in the Claims Queue and Executive Dashboard for credibility tracking.</p>", unsafe_allow_html=True)
+        
+        if st.button("Store Assessed Claim to Database", type="secondary"):
+            try:
+                df_new = st.session_state['last_assessment'].copy()
+                # Generate mock identifiers for the new claim
+                df_new['Claim_ID'] = f"NEW-CLM-{int(time.time())}"
+                df_new['Customer_ID'] = f"NEW-CUST-{int(time.time())}"
+                df_new['Policy_Number'] = f"NEW-POL-{int(time.time())}"
+                df_new['Fraud_Flag'] = "Pending"
+                
+                scored_path = "data/sample/Scored-Dataset.csv"
+                if os.path.exists(scored_path):
+                    df_existing = pd.read_csv(scored_path)
+                    df_combined = pd.concat([df_existing, df_new], ignore_index=True)
+                    df_combined.to_csv(scored_path, index=False)
+                    st.success("Claim successfully stored! It is now visible in the Claims Queue and Dashboard.")
+                    del st.session_state['last_assessment']
+                else:
+                    st.error("Could not find the Scored-Dataset.csv to append to.")
+            except Exception as e:
+                st.error(f"Error saving claim: {e}")
