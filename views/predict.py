@@ -107,20 +107,20 @@ def render():
             shap_html = f"""<div style="background: var(--background); padding: 20px; border-radius: 8px; border: 1px solid var(--border); height: 100%;">"""
             
             if ratio_penalty > 0:
-                shap_html += f'<div style="margin-bottom: 12px; display: flex; align-items: center;"><span style="font-size: 1.2rem; margin-right: 12px;">🔴</span> <div><strong style="color: var(--danger)">+{ratio_penalty} Risk:</strong> Claim amount (${claim_amt:,}) is dangerously close to or exceeds the policy limit (${coverage_amt:,}).</div></div>'
+                shap_html += f'<div style="margin-bottom: 12px; display: flex; align-items: center;"><div><strong style="color: var(--danger)">+{ratio_penalty} Risk:</strong> Claim amount (${claim_amt:,}) is dangerously close to or exceeds the policy limit (${coverage_amt:,}).</div></div>'
             else:
-                shap_html += f'<div style="margin-bottom: 12px; display: flex; align-items: center;"><span style="font-size: 1.2rem; margin-right: 12px;">🟢</span> <div><strong style="color: var(--success)">-5 Risk:</strong> Claim amount (${claim_amt:,}) is well within normal bounds for the policy limit.</div></div>'
+                shap_html += f'<div style="margin-bottom: 12px; display: flex; align-items: center;"><div><strong style="color: var(--success)">-5 Risk:</strong> Claim amount (${claim_amt:,}) is well within normal bounds for the policy limit.</div></div>'
                 
             if credit_penalty > 0:
-                shap_html += f'<div style="margin-bottom: 12px; display: flex; align-items: center;"><span style="font-size: 1.2rem; margin-right: 12px;">🔴</span> <div><strong style="color: var(--danger)">+{credit_penalty} Risk:</strong> Credit score ({credit_score}) indicates potential financial distress, increasing moral hazard.</div></div>'
+                shap_html += f'<div style="margin-bottom: 12px; display: flex; align-items: center;"><div><strong style="color: var(--danger)">+{credit_penalty} Risk:</strong> Credit score ({credit_score}) indicates potential financial distress, increasing moral hazard.</div></div>'
             else:
-                shap_html += f'<div style="margin-bottom: 12px; display: flex; align-items: center;"><span style="font-size: 1.2rem; margin-right: 12px;">🟢</span> <div><strong style="color: var(--success)">-4 Risk:</strong> High credit score ({credit_score}) indicates financial stability.</div></div>'
+                shap_html += f'<div style="margin-bottom: 12px; display: flex; align-items: center;"><div><strong style="color: var(--success)">-4 Risk:</strong> High credit score ({credit_score}) indicates financial stability.</div></div>'
                 
             if witness_penalty > 0:
-                shap_html += f'<div style="margin-bottom: 12px; display: flex; align-items: center;"><span style="font-size: 1.2rem; margin-right: 12px;">🔴</span> <div><strong style="color: var(--danger)">+{witness_penalty} Risk:</strong> Extremely high claim value with zero witnesses reported.</div></div>'
+                shap_html += f'<div style="margin-bottom: 12px; display: flex; align-items: center;"><div><strong style="color: var(--danger)">+{witness_penalty} Risk:</strong> Extremely high claim value with zero witnesses reported.</div></div>'
                 
             if severity_penalty > 0:
-                shap_html += f'<div style="margin-bottom: 12px; display: flex; align-items: center;"><span style="font-size: 1.2rem; margin-right: 12px;">🔴</span> <div><strong style="color: var(--danger)">+{severity_penalty} Risk:</strong> Unusually low claim amount for a "Total Loss" severity report.</div></div>'
+                shap_html += f'<div style="margin-bottom: 12px; display: flex; align-items: center;"><div><strong style="color: var(--danger)">+{severity_penalty} Risk:</strong> Unusually low claim amount for a "Total Loss" severity report.</div></div>'
                 
             shap_html += "</div>"
             st.markdown(shap_html, unsafe_allow_html=True)

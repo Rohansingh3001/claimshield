@@ -2,7 +2,7 @@ import streamlit as st
 
 st.set_page_config(
     page_title="ClaimShield AI",
-    page_icon="🛡️",
+    page_icon="shield",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -104,7 +104,6 @@ st.markdown("""
 # Sidebar Design
 st.sidebar.markdown("""
 <div style="display: flex; align-items: center; margin-bottom: 30px;">
-    <div style="font-size: 28px; margin-right: 12px; color: #3B82F6;">🛡️</div>
     <div>
         <h2 style="margin: 0; font-size: 20px; font-weight: 700; color: #F8FAFC;">ClaimShield AI</h2>
         <span style="font-size: 11px; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.1em;">Decision Support</span>
@@ -113,17 +112,17 @@ st.sidebar.markdown("""
 """, unsafe_allow_html=True)
 
 pages = {
-    "📊 Executive Dashboard": "views.dashboard",
-    "✨ New Claim Simulator": "views.predict",
-    "🔍 Claim Investigation": "views.investigation",
-    "📑 Claims Queue": "views.claims",
-    "⚙️ Model Performance": "views.model_performance"
+    "Executive Dashboard": "views.dashboard",
+    "New Claim Simulator": "views.predict",
+    "Claim Investigation": "views.investigation",
+    "Claims Queue": "views.claims",
+    "Model Performance": "views.model_performance"
 }
 
 selection = st.sidebar.radio("Navigation", list(pages.keys()), label_visibility="collapsed")
 
 st.sidebar.markdown("<br><br>", unsafe_allow_html=True)
-with st.sidebar.expander("ℹ️ How it Works"):
+with st.sidebar.expander("How it Works"):
     st.markdown("""
     **ClaimShield AI** analyzes claims using an XGBoost model.
     - Extracts 30+ features.

@@ -42,28 +42,28 @@ def render():
     with col1:
         st.markdown(f"""
         <div class="metric-card">
-            <div class="metric-title" title="Total number of claims processed by the system.">Total Claims ℹ️</div>
+            <div class="metric-title" title="Total number of claims processed by the system.">Total Claims</div>
             <div class="metric-value">{total_claims:,}</div>
         </div>
         """, unsafe_allow_html=True)
     with col2:
         st.markdown(f"""
         <div class="metric-card" style="border-top: 4px solid var(--danger);">
-            <div class="metric-title" title="Claims with a Fraud Risk Score above 70/100.">High Risk Claims ℹ️</div>
+            <div class="metric-title" title="Claims with a Fraud Risk Score above 70/100.">High Risk Claims</div>
             <div class="metric-value" style="color: var(--danger);">{high_risk_claims:,}</div>
         </div>
         """, unsafe_allow_html=True)
     with col3:
         st.markdown(f"""
         <div class="metric-card" style="border-top: 4px solid var(--warning);">
-            <div class="metric-title" title="Sum of Claim Amounts for all High Risk claims.">Est. Exposure ℹ️</div>
+            <div class="metric-title" title="Sum of Claim Amounts for all High Risk claims.">Est. Exposure</div>
             <div class="metric-value" style="color: var(--warning);">{exposure_str}</div>
         </div>
         """, unsafe_allow_html=True)
     with col4:
         st.markdown(f"""
         <div class="metric-card">
-            <div class="metric-title" title="Percentage of historical claims flagged as fraudulent.">Historical Fraud Rate ℹ️</div>
+            <div class="metric-title" title="Percentage of historical claims flagged as fraudulent.">Historical Fraud Rate</div>
             <div class="metric-value">{fraud_rate:.1f}%</div>
         </div>
         """, unsafe_allow_html=True)

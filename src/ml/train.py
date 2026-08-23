@@ -4,6 +4,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
 from xgboost import XGBClassifier
 from sklearn.calibration import CalibratedClassifierCV
+from sklearn.model_selection import RandomizedSearchCV
 import joblib
 import json
 
@@ -20,11 +21,35 @@ class ModelTrainer:
         """Trains models with basic parameters and applies probability calibration."""
         for name, model in self.models.items():
             print(f"Training {name}...")
-            model.fit(X_train, y_train)
+            
+            # Hyperparameter tuning for XGBoost
+            if name == 'XGBoost':
+                print("Performing hyperparameter tuning for XGBoost...")
+                param_grid = {
+                    'n_estimators': [100, 200, 300],
+                    'max_depth': [3, 5, 7, 9],
+                    'learning_rate': [0.01, 0.05, 0.1, 0.2],
+                    'subsample': [0.7, 0.8, 0.9, 1.0],
+                    'colsample_bytree': [0.7, 0.8, 0.9, 1.0]
+                }
+                search = RandomizedSearchCV(
+                    model, 
+                    param_distributions=param_grid, 
+                    n_iter=10, 
+                    scoring='roc_auc', 
+                    cv=3, 
+                    random_state=42, 
+                    n_jobs=-1
+                )
+                search.fit(X_train, y_train)
+                model = search.best_estimator_
+                print(f"Best parameters found: {search.best_params_}")
+            else:
+                model.fit(X_train, y_train)
             
             # Calibrate probabilities
             print(f"Calibrating {name}...")
-            calibrated = CalibratedClassifierCV(model, method='sigmoid', cv='prefit')
+            calibrated = CalibratedClassifierCV(model, method='sigmoid', cv=3)
             calibrated.fit(X_train, y_train)
             self.calibrated_models[name] = calibrated
             

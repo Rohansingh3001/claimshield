@@ -25,7 +25,7 @@ def render():
     claim_ids = df['Claim_ID'].tolist()
     
     # Search / Select bar
-    selected_claim_id = st.selectbox("🔍 Search or Select a Claim ID to Investigate", claim_ids)
+    selected_claim_id = st.selectbox("Search or Select a Claim ID to Investigate", claim_ids)
     
     if selected_claim_id:
         st.markdown("<hr style='border-color: var(--border); margin: 2rem 0;'>", unsafe_allow_html=True)
@@ -92,12 +92,12 @@ def render():
             </div>
             """, unsafe_allow_html=True)
             
-            with st.expander("🔍 View AI Reasoning (SHAP)", expanded=True):
+            with st.expander("View AI Reasoning (SHAP)", expanded=True):
                 st.markdown(f"""
                 <div style="background: var(--background); padding: 20px; border-radius: 8px; border: 1px solid var(--border);">
-                    <div style="margin-bottom: 12px; display: flex; align-items: center;"><span style="font-size: 1.2rem; margin-right: 12px;">🔴</span> <div><strong style="color: var(--danger)">+12 Risk:</strong> The `Claim_Amount` (₹{claim_data.get('Claim_Amount', 0):,.0f}) is unusually high compared to the `Coverage_Amount`.</div></div>
-                    <div style="margin-bottom: 12px; display: flex; align-items: center;"><span style="font-size: 1.2rem; margin-right: 12px;">🔴</span> <div><strong style="color: var(--danger)">+8 Risk:</strong> The `Age` of the claimant ({claim_data.get('Age', 30)}) matches historical high-risk patterns.</div></div>
-                    <div style="display: flex; align-items: center;"><span style="font-size: 1.2rem; margin-right: 12px;">🟢</span> <div><strong style="color: var(--success)">-4 Risk:</strong> The `Credit_Score` ({claim_data.get('Credit_Score', 700)}) is excellent, indicating financial stability.</div></div>
+                    <div style="margin-bottom: 12px; display: flex; align-items: center;"><div><strong style="color: var(--danger)">+12 Risk:</strong> The `Claim_Amount` (₹{claim_data.get('Claim_Amount', 0):,.0f}) is unusually high compared to the `Coverage_Amount`.</div></div>
+                    <div style="margin-bottom: 12px; display: flex; align-items: center;"><div><strong style="color: var(--danger)">+8 Risk:</strong> The `Age` of the claimant ({claim_data.get('Age', 30)}) matches historical high-risk patterns.</div></div>
+                    <div style="display: flex; align-items: center;"><div><strong style="color: var(--success)">-4 Risk:</strong> The `Credit_Score` ({claim_data.get('Credit_Score', 700)}) is excellent, indicating financial stability.</div></div>
                 </div>
                 """, unsafe_allow_html=True)
                 st.caption("*(Note: In the full production build, this plain text is dynamically generated from SHAP values using the `explain.py` module.)*")
