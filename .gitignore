@@ -7,6 +7,7 @@ __pycache__/
 # Ignore large datasets by default but allow the required MVP sample
 data/sample/*.csv
 !data/sample/ClaimShieldAI-Dataset.csv
+!data/sample/Scored-Dataset.csv
 
 # Ignore large models (like randomforest.pkl >100MB) but allow others
 models/*.pkl
