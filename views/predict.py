@@ -7,28 +7,81 @@ from src.features.engineering import FeatureEngineer
 from src.ml.explain import ModelExplainer
 
 def render():
-    st.markdown("<h1 class='text-primary' style='margin-bottom: 0;'>New Claim Validator</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='color: var(--text-muted); font-size: 1.1rem; margin-bottom: 2rem;'>Run a live AI assessment on a new insurance claim using the trained XGBoost model.</p>", unsafe_allow_html=True)
-    
-    st.markdown("<h3 style='font-size: 1.1rem; color: var(--text); margin-bottom: 15px;'>Enter Claim Details</h3>", unsafe_allow_html=True)
+    # Premium UI CSS
+    st.markdown("""
+    <style>
+    [data-testid="stForm"] {
+        background: rgba(15, 23, 42, 0.4);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 16px;
+        padding: 2.5rem;
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+    }
+    div[data-baseweb="input"] > div, div[data-baseweb="select"] > div {
+        background-color: rgba(30, 41, 59, 0.5) !important;
+        border: 1px solid rgba(148, 163, 184, 0.1) !important;
+        border-radius: 8px !important;
+        transition: all 0.3s ease;
+    }
+    div[data-baseweb="input"] > div:hover, div[data-baseweb="select"] > div:hover {
+        border-color: rgba(56, 189, 248, 0.4) !important;
+    }
+    button[kind="primary"] {
+        background: linear-gradient(135deg, #0ea5e9, #3b82f6) !important;
+        border: none !important;
+        color: white !important;
+        font-weight: 600 !important;
+        border-radius: 8px !important;
+        padding: 0.5rem 2rem !important;
+        transition: all 0.3s ease !important;
+        box-shadow: 0 4px 15px rgba(14, 165, 233, 0.3) !important;
+    }
+    button[kind="primary"]:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(14, 165, 233, 0.5) !important;
+    }
+    .premium-title {
+        background: linear-gradient(to right, #38bdf8, #818cf8);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-weight: 800;
+        margin-bottom: 0;
+    }
+    .section-header {
+        font-size: 0.85rem;
+        color: #38bdf8;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        border-bottom: 1px solid rgba(56, 189, 248, 0.2);
+        padding-bottom: 0.5rem;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+    st.markdown("<h1 class='premium-title'>New Claim Validator</h1>", unsafe_allow_html=True)
+    st.markdown("<p style='color: #94a3b8; font-size: 1.1rem; margin-bottom: 2rem;'>Run a live AI assessment on a new insurance claim using the trained XGBoost model.</p>", unsafe_allow_html=True)
     
     with st.form("new_claim_form"):
         col1, col2 = st.columns(2)
         
         with col1:
-            st.markdown("<p style='font-size: 0.9rem; color: var(--text-muted); margin-bottom: 5px;'>Policyholder Information</p>", unsafe_allow_html=True)
+            st.markdown("<div class='section-header'>Policyholder Information</div>", unsafe_allow_html=True)
             age = st.number_input("Age", min_value=18, max_value=100, value=35)
             gender = st.selectbox("Gender", ["Male", "Female"])
             region = st.selectbox("Region", ["North", "South", "East", "West"])
             credit_score = st.slider("Credit Score", min_value=300, max_value=850, value=700)
             
-            st.markdown("<br><p style='font-size: 0.9rem; color: var(--text-muted); margin-bottom: 5px;'>Policy Details</p>", unsafe_allow_html=True)
+            st.markdown("<br><div class='section-header'>Policy Details</div>", unsafe_allow_html=True)
             policy_type = st.selectbox("Policy Type", ["Auto", "Home", "Health", "Life"])
             coverage_amt = st.number_input("Total Coverage Amount ($)", min_value=1000, max_value=1000000, value=50000, step=1000)
             premium_amt = st.number_input("Premium Amount ($)", min_value=100, max_value=50000, value=1500, step=100)
             
         with col2:
-            st.markdown("<p style='font-size: 0.9rem; color: var(--text-muted); margin-bottom: 5px;'>Incident Information</p>", unsafe_allow_html=True)
+            st.markdown("<div class='section-header'>Incident Information</div>", unsafe_allow_html=True)
             claim_type = st.selectbox("Claim Type", ["Collision", "Theft", "Property Damage", "Medical", "Fire", "Accident"])
             claim_amt = st.number_input("Requested Claim Amount ($)", min_value=100, max_value=1000000, value=8000, step=500)
             
