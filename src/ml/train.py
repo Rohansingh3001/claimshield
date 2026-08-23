@@ -27,10 +27,13 @@ class ModelTrainer:
                 print("Performing hyperparameter tuning for XGBoost...")
                 param_grid = {
                     'n_estimators': [100, 200, 300],
-                    'max_depth': [3, 5, 7, 9],
-                    'learning_rate': [0.01, 0.05, 0.1, 0.2],
-                    'subsample': [0.7, 0.8, 0.9, 1.0],
-                    'colsample_bytree': [0.7, 0.8, 0.9, 1.0]
+                    'max_depth': [3, 4, 5],
+                    'learning_rate': [0.01, 0.05, 0.1],
+                    'subsample': [0.8, 0.9, 1.0],
+                    'colsample_bytree': [0.8, 0.9, 1.0],
+                    'gamma': [0.1, 1, 5],            # Penalize complex trees
+                    'reg_alpha': [0.1, 1, 10],       # L1 regularization
+                    'reg_lambda': [1, 10, 50]        # L2 regularization
                 }
                 search = RandomizedSearchCV(
                     model, 
