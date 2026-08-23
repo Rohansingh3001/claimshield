@@ -102,7 +102,13 @@ def render():
                 # preprocessor.transform will automatically select only the columns it needs
                 X_processed = preprocessor.transform(df_engineered)
                 
-                explainer = ModelExplainer(model, X_processed)
+                # Get a small background dataset for SHAP
+                df_bg = df.sample(n=50, random_state=42)
+                engineer_bg = FeatureEngineer(df_bg)
+                df_bg_engineered = engineer_bg.engineer_features()
+                X_bg = preprocessor.transform(df_bg_engineered)
+                
+                explainer = ModelExplainer(model, X_bg)
                 X_processed_df = pd.DataFrame(X_processed, columns=preprocessor.feature_names_out_)
                 contributions, base_value = explainer.get_explanation(X_processed_df)
                 top_contributions = contributions[:4] if contributions else []
