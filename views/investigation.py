@@ -140,21 +140,21 @@ def render():
                     else:
                         for c in visible_contributions:
                             val = c['Contribution']
-                        feat = c['Feature'].replace('num__', '').replace('cat__', '')
-                        
-                        if feat in df_engineered.columns:
-                            raw_val = df_engineered[feat].iloc[0]
-                            if isinstance(raw_val, float):
-                                val_str = f" *(Value: {raw_val:.2f})*"
-                            else:
-                                val_str = f" *(Value: {raw_val})*"
-                        else:
-                            val_str = ""
+                            feat = c['Feature'].replace('num__', '').replace('cat__', '')
                             
-                        if val > 0:
-                            st.markdown(f"🔴 **{feat}**{val_str} significantly increased the risk score (Impact: +{abs(val):.3f})")
-                        else:
-                            st.markdown(f"🟢 **{feat}**{val_str} decreased the risk score (Impact: -{abs(val):.3f})")
+                            if feat in df_engineered.columns:
+                                raw_val = df_engineered[feat].iloc[0]
+                                if isinstance(raw_val, float):
+                                    val_str = f" *(Value: {raw_val:.2f})*"
+                                else:
+                                    val_str = f" *(Value: {raw_val})*"
+                            else:
+                                val_str = ""
+                                
+                            if val > 0:
+                                st.markdown(f"🔴 **{feat}**{val_str} significantly increased the risk score (Impact: +{abs(val):.3f})")
+                            else:
+                                st.markdown(f"🟢 **{feat}**{val_str} decreased the risk score (Impact: -{abs(val):.3f})")
                             
                 st.markdown("</div>", unsafe_allow_html=True)
 
