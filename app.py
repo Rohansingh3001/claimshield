@@ -115,7 +115,8 @@ pages = {
     "New Claim Validator": "views.predict",
     "Executive Dashboard & Model Performance": "views.dashboard",
     "Claim Investigation": "views.investigation",
-    "Claims Queue": "views.claims"
+    "Claims Queue": "views.claims",
+    "Batch Evaluation": "views.evaluation"
 }
 
 selection = st.sidebar.radio("Navigation", list(pages.keys()), label_visibility="collapsed")

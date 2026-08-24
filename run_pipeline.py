@@ -74,17 +74,70 @@ def main():
     test_results = evaluator.evaluate(X_test_processed, y_test)
     print(test_results)
     
+    # Save the full model comparison table
+    test_results.to_csv('models/model_comparison.csv', index=False)
+    
     # Save metrics to JSON for the dashboard
     xgboost_metrics = test_results[test_results['Model'] == 'XGBoost'].to_dict('records')[0]
     metrics_out = {
-        'ROC-AUC': float(xgboost_metrics['ROC-AUC']),
-        'PR-AUC': float(xgboost_metrics['PR-AUC']),
-        'Recall': float(xgboost_metrics['Recall']),
-        'Precision': float(xgboost_metrics['Precision']),
-        'F1 Score': float(xgboost_metrics['F1 Score'])
+        'Accuracy': float(xgboost_metrics.get('Accuracy', 0)),
+        'ROC-AUC': float(xgboost_metrics.get('ROC-AUC', 0)),
+        'PR-AUC': float(xgboost_metrics.get('PR-AUC', 0)),
+        'Recall': float(xgboost_metrics.get('Recall', 0)),
+        'Precision': float(xgboost_metrics.get('Precision', 0)),
+        'F1 Score': float(xgboost_metrics.get('F1 Score', 0)),
+        'TN': int(xgboost_metrics.get('TN', 0)),
+        'FP': int(xgboost_metrics.get('FP', 0)),
+        'FN': int(xgboost_metrics.get('FN', 0)),
+        'TP': int(xgboost_metrics.get('TP', 0))
     }
     with open('models/metrics.json', 'w') as f:
         json.dump(metrics_out, f, indent=4)
+        
+    # Generate and save curve data for XGBoost
+    curves = evaluator.get_curves('XGBoost', X_test_processed, y_test)
+    curves_out = {
+        'roc': {
+            'fpr': curves['roc']['fpr'].tolist(),
+            'tpr': curves['roc']['tpr'].tolist()
+        },
+        'pr': {
+            'precision': curves['pr']['precision'].tolist(),
+            'recall': curves['pr']['recall'].tolist()
+        }
+    }
+    with open('models/curves.json', 'w') as f:
+        json.dump(curves_out, f)
+        
+    # Generate Test Validation Results (Ground Truth vs Prediction)
+    print("Generating Prediction vs Ground Truth validation table...")
+    final_model = trainer.calibrated_models['XGBoost']
+    test_probs = final_model.predict_proba(X_test_processed)[:, 1]
+    
+    # In evaluate.py, we use a custom threshold of 0.35
+    test_preds = (test_probs >= 0.35).astype(int)
+    
+    # Get original Claim_ID for test set using index
+    test_validation_df = pd.DataFrame({
+        'Claim_ID': df.loc[X_test.index, 'Claim_ID'] if 'Claim_ID' in df.columns else X_test.index,
+        'Actual Label': df.loc[X_test.index, 'Fraud_Flag'],
+        'Fraud Probability': (test_probs * 100).round(2),
+        'Predicted Label': test_preds
+    })
+    
+    # Map predictions to string labels
+    test_validation_df['Predicted Label'] = test_validation_df['Predicted Label'].apply(lambda x: 'Fraud' if x == 1 else 'Normal')
+    
+    # Compare
+    def check_correct(row):
+        actual_is_fraud = str(row['Actual Label']).lower() in ['yes', '1', 'true', 'fraud']
+        predicted_is_fraud = row['Predicted Label'] == 'Fraud'
+        return 'Correct' if actual_is_fraud == predicted_is_fraud else 'Incorrect'
+        
+    test_validation_df['Result'] = test_validation_df.apply(check_correct, axis=1)
+    
+    # Save validation table
+    test_validation_df.to_csv('data/sample/Test-Validation-Results.csv', index=False)
         
     # Batch Inference on the entire dataset for the dashboard
     print("Running batch inference on entire dataset to generate Scored-Dataset.csv...")

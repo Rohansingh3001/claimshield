@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from sklearn.metrics import roc_auc_score, average_precision_score, recall_score, f1_score, precision_score, confusion_matrix, roc_curve, precision_recall_curve
+from sklearn.metrics import roc_auc_score, average_precision_score, recall_score, f1_score, precision_score, confusion_matrix, roc_curve, precision_recall_curve, accuracy_score
 
 class ModelEvaluator:
     def __init__(self, models_dict):
@@ -21,14 +21,27 @@ class ModelEvaluator:
             recall = recall_score(y_test, y_pred)
             precision = precision_score(y_test, y_pred, zero_division=0)
             f1 = f1_score(y_test, y_pred)
+            accuracy = accuracy_score(y_test, y_pred)
+            
+            # Confusion matrix: TN, FP, FN, TP
+            cm = confusion_matrix(y_test, y_pred)
+            if cm.shape == (2, 2):
+                tn, fp, fn, tp = cm.ravel()
+            else:
+                tn, fp, fn, tp = 0, 0, 0, 0
             
             results.append({
                 'Model': name,
+                'Accuracy': accuracy,
                 'ROC-AUC': roc_auc,
                 'PR-AUC': pr_auc,
                 'Recall': recall,
                 'Precision': precision,
-                'F1 Score': f1
+                'F1 Score': f1,
+                'TN': int(tn),
+                'FP': int(fp),
+                'FN': int(fn),
+                'TP': int(tp)
             })
         return pd.DataFrame(results)
         
