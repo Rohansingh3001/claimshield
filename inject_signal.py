@@ -8,6 +8,10 @@ def inject_probabilistic_signal(csv_path):
     # Calculate a continuous risk probability for each row
     np.random.seed(42)
     
+    # Introduce extreme outliers for the model to learn extrapolation bounds
+    extreme_idx = df.sample(frac=0.05, random_state=42).index
+    df.loc[extreme_idx, 'Claim_Amount'] = df.loc[extreme_idx, 'Coverage_Amount'] * np.random.uniform(5.0, 30.0, len(extreme_idx))
+    
     # Base probability
     prob = np.full(len(df), 0.02)
     
