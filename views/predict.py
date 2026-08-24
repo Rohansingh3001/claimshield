@@ -188,13 +188,33 @@ def render():
             if not top_contributions:
                 shap_html += "<div>No SHAP explanations available.</div>"
             else:
+                max_val = max([abs(c['Contribution']) for c in top_contributions]) if top_contributions else 1
                 for c in top_contributions:
                     val = c['Contribution']
                     feat = c['Feature'].replace('num__', '').replace('cat__', '')
+                    width = min(100, (abs(val) / max_val) * 100) if max_val > 0 else 0
+                    
                     if val > 0:
-                        shap_html += f'<div style="margin-bottom: 12px; display: flex; align-items: center;"><div><strong style="color: var(--danger)">+{val:.3f} Risk:</strong> The feature `{feat}` significantly increased the risk score.</div></div>'
+                        color = "var(--danger)"
+                        icon = "↑"
+                        desc = "Increased Risk"
                     else:
-                        shap_html += f'<div style="margin-bottom: 12px; display: flex; align-items: center;"><div><strong style="color: var(--success)">{val:.3f} Risk:</strong> The feature `{feat}` decreased the risk score.</div></div>'
+                        color = "var(--success)"
+                        icon = "↓"
+                        desc = "Decreased Risk"
+                        
+                    shap_html += f"""
+                    <div style="margin-bottom: 16px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 0.9rem;">
+                            <span style="font-weight: 600; color: var(--text);">{feat}</span>
+                            <span style="color: {color}; font-weight: 700;">{icon} {abs(val):.3f}</span>
+                        </div>
+                        <div style="width: 100%; background-color: rgba(255,255,255,0.05); border-radius: 4px; height: 8px; overflow: hidden;">
+                            <div style="width: {width}%; background-color: {color}; height: 100%; border-radius: 4px; transition: width 1s ease-in-out;"></div>
+                        </div>
+                        <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">{desc}</div>
+                    </div>
+                    """
                 
             shap_html += "</div>"
             st.markdown(shap_html, unsafe_allow_html=True)
