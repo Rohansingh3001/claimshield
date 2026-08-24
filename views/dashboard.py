@@ -236,7 +236,8 @@ def render():
             imp_df['Feature'] = imp_df['Feature'].str.replace('num__', '').str.replace('cat__', '')
             
             fig_imp = px.bar(imp_df, x='Importance', y='Feature', orientation='h')
-            fig_imp.update_layout(**dark_layout, yaxis={'categoryorder': 'total ascending'})
+            fig_imp.update_layout(**dark_layout)
+            fig_imp.update_yaxes(categoryorder='total ascending')
             st.plotly_chart(fig_imp, use_container_width=True)
         except Exception as e:
             st.warning(f"Could not extract feature importances: {e}")
