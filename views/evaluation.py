@@ -61,6 +61,18 @@ def render():
                     col3.metric("F1 Score", f"{f1*100:.1f}%")
                     col4.metric("Accuracy", f"{acc*100:.1f}%")
                     
+                    st.markdown("<br>", unsafe_allow_html=True)
+                    st.markdown("""
+                    <div style="background-color: rgba(30, 41, 59, 0.5); border-left: 4px solid var(--primary); padding: 20px; border-radius: 4px; margin-bottom: 2rem;">
+                        <h4 style="color: var(--primary); margin-top: 0; margin-bottom: 10px; font-size: 1rem;">Why this Threshold (0.35)? — The Business Trade-off</h4>
+                        <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.5; margin-bottom: 0;">
+                            In fraud detection, there is a fundamental trade-off between <strong>Recall</strong> (catching as much fraud as possible) and <strong>Precision</strong> (ensuring every flagged claim is actually fraud). 
+                            <br><br>
+                            We intentionally set a lower classification threshold of <strong>0.35</strong>. This aggressively favors <strong>Recall</strong>, resulting in a higher number of flagged claims. While this lowers Precision (meaning more legitimate claims will be flagged for manual review), the business logic dictates that the administrative cost of a manual investigator reviewing a "false alarm" is significantly cheaper than the direct financial loss of paying out a fraudulent $80,000 claim that slipped through the cracks.
+                        </p>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    
                     # Confusion Matrix
                     cm = confusion_matrix(y_true, predictions)
                     if cm.shape == (2, 2):
