@@ -12,7 +12,9 @@ class ModelEvaluator:
         for name, model in self.models.items():
             # Get probability of positive class (Fraud)
             y_pred_proba = model.predict_proba(X_test)[:, 1]
-            y_pred = model.predict(X_test)
+            # Use custom threshold to increase recall
+            threshold = 0.35
+            y_pred = (y_pred_proba >= threshold).astype(int)
             
             roc_auc = roc_auc_score(y_test, y_pred_proba)
             pr_auc = average_precision_score(y_test, y_pred_proba)

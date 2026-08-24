@@ -26,27 +26,49 @@ class ModelTrainer:
             if name == 'XGBoost':
                 print("Performing hyperparameter tuning for XGBoost...")
                 param_grid = {
-                    'n_estimators': [100, 200, 300],
-                    'max_depth': [3, 4, 5],
-                    'learning_rate': [0.01, 0.05, 0.1],
-                    'subsample': [0.8, 0.9, 1.0],
-                    'colsample_bytree': [0.8, 0.9, 1.0],
-                    'gamma': [0.1, 1, 5],            # Penalize complex trees
-                    'reg_alpha': [0.1, 1, 10],       # L1 regularization
-                    'reg_lambda': [1, 10, 50]        # L2 regularization
+                    'n_estimators': [100, 200, 300, 500],
+                    'max_depth': [3, 4, 5, 6, 7],
+                    'learning_rate': [0.01, 0.05, 0.1, 0.2],
+                    'subsample': [0.7, 0.8, 0.9, 1.0],
+                    'colsample_bytree': [0.7, 0.8, 0.9, 1.0],
+                    'gamma': [0, 0.1, 1, 5],            # Penalize complex trees
+                    'reg_alpha': [0, 0.1, 1, 10],       # L1 regularization
+                    'reg_lambda': [0, 1, 10, 50],       # L2 regularization
+                    'scale_pos_weight': [1, 2, 5, 10]   # Boost recall for positive class
                 }
                 search = RandomizedSearchCV(
                     model, 
                     param_distributions=param_grid, 
-                    n_iter=10, 
-                    scoring='roc_auc', 
-                    cv=3, 
+                    n_iter=20, 
+                    scoring='recall', 
+                    cv=5, 
                     random_state=42, 
                     n_jobs=-1
                 )
                 search.fit(X_train, y_train)
                 model = search.best_estimator_
                 print(f"Best parameters found: {search.best_params_}")
+            elif name == 'RandomForest':
+                print("Performing hyperparameter tuning for RandomForest...")
+                rf_param_grid = {
+                    'n_estimators': [100, 200, 300, 500],
+                    'max_depth': [10, 20, 30, None],
+                    'min_samples_split': [2, 5, 10],
+                    'min_samples_leaf': [1, 2, 4],
+                    'bootstrap': [True, False]
+                }
+                rf_search = RandomizedSearchCV(
+                    model, 
+                    param_distributions=rf_param_grid, 
+                    n_iter=20, 
+                    scoring='recall', 
+                    cv=5, 
+                    random_state=42, 
+                    n_jobs=-1
+                )
+                rf_search.fit(X_train, y_train)
+                model = rf_search.best_estimator_
+                print(f"Best parameters found: {rf_search.best_params_}")
             else:
                 model.fit(X_train, y_train)
             

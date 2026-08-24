@@ -15,6 +15,10 @@ class FeatureEngineer:
         if 'Premium_Amount' in self.df.columns and 'Coverage_Amount' in self.df.columns:
             self.df['premium_to_coverage_ratio'] = self.df['Premium_Amount'] / (self.df['Coverage_Amount'] + 1e-5)
             
+        # Claim to Premium Ratio
+        if 'Claim_Amount' in self.df.columns and 'Premium_Amount' in self.df.columns:
+            self.df['claim_to_premium_ratio'] = self.df['Claim_Amount'] / (self.df['Premium_Amount'] + 1e-5)
+            
         return self.df
 
     def process_dates(self):
