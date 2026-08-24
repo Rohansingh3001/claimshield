@@ -74,7 +74,7 @@ class ModelTrainer:
             
             # Calibrate probabilities
             print(f"Calibrating {name}...")
-            calibrated = CalibratedClassifierCV(model, method='sigmoid', cv=3)
+            calibrated = CalibratedClassifierCV(model, method='isotonic', cv=3)
             calibrated.fit(X_train, y_train)
             self.calibrated_models[name] = calibrated
             
