@@ -12,8 +12,13 @@ def inject_probabilistic_signal(csv_path):
     prob = np.full(len(df), 0.02)
     
     # 1. Claim to Coverage Ratio
-    claim_ratio = (df['Claim_Amount'] / (df['Coverage_Amount'] + 1)).clip(0, 1)
-    prob += 0.35 * claim_ratio
+    raw_claim_ratio = df['Claim_Amount'] / (df['Coverage_Amount'] + 1)
+    
+    # Standard risk addition for normal ratios
+    prob += 0.35 * raw_claim_ratio.clip(0, 1)
+    
+    # Massive fraud signal for asking more than coverage
+    prob = np.where(raw_claim_ratio > 1.0, prob + 0.90, prob)
     
     # 2. Credit Score (Lower is riskier)
     # Credit ranges 300-850. 
