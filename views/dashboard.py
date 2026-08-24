@@ -3,6 +3,7 @@ import pandas as pd
 import os
 import plotly.express as px
 import plotly.graph_objects as go
+import json
 
 def render():
     st.markdown("<h1 class='gradient-text' style='margin-bottom: 0;'>Executive Dashboard & Model Performance</h1>", unsafe_allow_html=True)
@@ -118,8 +119,17 @@ def render():
     st.markdown("<p style='color: var(--text-muted); font-size: 1.1rem; margin-bottom: 2rem;'>Technical evaluation of the machine learning models.</p>", unsafe_allow_html=True)
     
     st.markdown("""
-    <div style="background: rgba(16, 185, 129, 0.1); border-left: 4px solid var(--success); padding: 16px 20px; border-radius: 4px; margin-bottom: 2rem;">
+    <div style="background: rgba(16, 185, 129, 0.1); border-left: 4px solid var(--success); padding: 16px 20px; border-radius: 4px; margin-bottom: 1rem;">
         <span style="color: var(--success); font-weight: 700; margin-right: 10px;">SUCCESS:</span> The primary model selected for production is <strong>XGBoost</strong> due to its superior PR-AUC and Recall for the minority (fraud) class, alongside native support for SHAP explainability.
+    </div>
+    
+    <div style="background: rgba(56, 189, 248, 0.1); border-left: 4px solid var(--primary); padding: 16px 20px; border-radius: 4px; margin-bottom: 2rem;">
+        <h4 style="color: var(--primary); margin-top: 0; margin-bottom: 8px; font-size: 1rem;">Business Trade-Off: Why this threshold?</h4>
+        <p style="margin: 0; font-size: 0.95rem; color: var(--text-muted); line-height: 1.5;">
+            You may notice that while our <strong>Recall</strong> is very high (~89%), our <strong>Precision</strong> is lower (~50%). 
+            This is by design. We use a custom prediction threshold (0.35 instead of default 0.50) optimized for risk mitigation. 
+            The financial loss of missing a fraudulent claim (False Negative) is exponentially higher than the administrative cost of an investigator manually reviewing a legitimate claim (False Positive). By maximizing Recall, we cast a wider net to catch almost all fraud, accepting a manageable increase in reviews.
+        </p>
     </div>
     """, unsafe_allow_html=True)
     
@@ -133,7 +143,6 @@ def render():
         st.markdown("<h3 style='font-size: 1.1rem; color: var(--text);'>Model Comparison</h3>", unsafe_allow_html=True)
         st.dataframe(df_comparison, use_container_width=True, hide_index=True)
     elif os.path.exists(metrics_path):
-        import json
         with open(metrics_path, 'r') as f:
             real_metrics = json.load(f)
         

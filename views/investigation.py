@@ -129,41 +129,21 @@ def render():
             """, unsafe_allow_html=True)
             
             with st.expander("View AI Reasoning (SHAP)", expanded=True):
-                shap_html = f"""<div style="background: var(--background); padding: 20px; border-radius: 8px; border: 1px solid var(--border);">"""
+                st.markdown("""<div style="background: var(--background); padding: 20px; border-radius: 8px; border: 1px solid var(--border);">""", unsafe_allow_html=True)
                 
                 if not top_contributions:
-                    shap_html += "<div>No SHAP explanations available.</div>"
+                    st.markdown("No SHAP explanations available.")
                 else:
-                    max_val = max([abs(c['Contribution']) for c in top_contributions]) if top_contributions else 1
                     for c in top_contributions:
                         val = c['Contribution']
                         feat = c['Feature'].replace('num__', '').replace('cat__', '')
-                        width = min(100, (abs(val) / max_val) * 100) if max_val > 0 else 0
                         
                         if val > 0:
-                            color = "var(--danger)"
-                            icon = "↑"
-                            desc = "Increased Risk"
+                            st.markdown(f"🔴 **{feat}** significantly increased the risk score (+{abs(val):.3f})")
                         else:
-                            color = "var(--success)"
-                            icon = "↓"
-                            desc = "Decreased Risk"
+                            st.markdown(f"🟢 **{feat}** decreased the risk score (-{abs(val):.3f})")
                             
-                        shap_html += f"""
-                        <div style="margin-bottom: 16px;">
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 0.9rem;">
-                                <span style="font-weight: 600; color: var(--text);">{feat}</span>
-                                <span style="color: {color}; font-weight: 700;">{icon} {abs(val):.3f}</span>
-                            </div>
-                            <div style="width: 100%; background-color: rgba(255,255,255,0.05); border-radius: 4px; height: 8px; overflow: hidden;">
-                                <div style="width: {width}%; background-color: {color}; height: 100%; border-radius: 4px; transition: width 1s ease-in-out;"></div>
-                            </div>
-                            <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">{desc}</div>
-                        </div>
-                        """
-                    
-                shap_html += "</div>"
-                st.markdown(shap_html, unsafe_allow_html=True)
+                st.markdown("</div>", unsafe_allow_html=True)
 
         with col4:
             st.markdown("<h3 style='font-size: 1.2rem; color: var(--text-muted);'>STEP 4: Business Impact</h3>", unsafe_allow_html=True)
