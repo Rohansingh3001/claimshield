@@ -129,7 +129,7 @@ def render():
             # SHAP Explanation
             try:
                 # Get a small background dataset for SHAP
-                df_bg = pd.read_csv("data/sample/Scored-Dataset.csv").sample(n=50, random_state=42)
+                df_bg = pd.read_csv("data/sample/Scored-Dataset.csv").sample(n=50, random_state=1)
                 engineer_bg = FeatureEngineer(df_bg)
                 df_bg_engineered = engineer_bg.engineer_features()
                 X_bg = preprocessor.transform(df_bg_engineered)

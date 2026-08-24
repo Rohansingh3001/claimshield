@@ -103,7 +103,7 @@ def render():
                 X_processed = preprocessor.transform(df_engineered)
                 
                 # Get a small background dataset for SHAP
-                df_bg = df.sample(n=50, random_state=42)
+                df_bg = df.sample(n=50, random_state=1)
                 engineer_bg = FeatureEngineer(df_bg)
                 df_bg_engineered = engineer_bg.engineer_features()
                 X_bg = preprocessor.transform(df_bg_engineered)
