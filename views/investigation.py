@@ -134,8 +134,12 @@ def render():
                 if not top_contributions:
                     st.markdown("No SHAP explanations available.")
                 else:
-                    for c in top_contributions:
-                        val = c['Contribution']
+                    visible_contributions = [c for c in top_contributions if abs(c['Contribution']) >= 0.001]
+                    if not visible_contributions:
+                        st.markdown("No single feature had a highly significant individual impact.")
+                    else:
+                        for c in visible_contributions:
+                            val = c['Contribution']
                         feat = c['Feature'].replace('num__', '').replace('cat__', '')
                         
                         if feat in df_engineered.columns:
