@@ -137,124 +137,21 @@ def render():
     
     st.markdown("<h3 style='font-size: 1.1rem; color: var(--text);'>Model Comparison</h3>", unsafe_allow_html=True)
     
-    models = [
-        {
-            "name": "Logistic Regression",
-            "accent": "#00D9FF",
-            "accuracy": "0.7224",
-            "roc_auc": "0.8213",
-            "pr_auc": "0.8598",
-            "recall": "0.7963",
-            "precision": "0.7161",
-            "f1": "0.7541",
-            "tn": "2377",
-            "fp": "1351",
-            "fn": "872",
-            "tp": "3408"
-        },
-        {
-            "name": "Random Forest",
-            "accent": "#F59E0B",
-            "accuracy": "0.7355",
-            "roc_auc": "0.8313",
-            "pr_auc": "0.8730",
-            "recall": "0.7883",
-            "precision": "0.7357",
-            "f1": "0.7611",
-            "tn": "2516",
-            "fp": "1212",
-            "fn": "906",
-            "tp": "3374"
-        },
-        {
-            "name": "XGBoost",
-            "accent": "#A855F7",
-            "accuracy": "0.7425",
-            "roc_auc": "0.8385",
-            "pr_auc": "0.8794",
-            "recall": "0.7825",
-            "precision": "0.7475",
-            "f1": "0.7646",
-            "tn": "2597",
-            "fp": "1131",
-            "fn": "931",
-            "tp": "3349"
-        }
-    ]
-
-    rows = ""
-    for m in models:
-        accent = m['accent']
-        rows += f"<tr><td style='color: {accent}; font-weight: 600; text-align: left; padding-left: 20px;'>{m['name']}</td><td style='color: {accent};'>{m['accuracy']}</td><td style='color: {accent};'>{m['roc_auc']}</td><td style='color: {accent};'>{m['pr_auc']}</td><td style='color: {accent};'>{m['recall']}</td><td style='color: {accent};'>{m['precision']}</td><td style='color: {accent};'>{m['f1']}</td><td style='color: {accent};'>{m['tn']}</td><td style='color: {accent};'>{m['fp']}</td><td style='color: {accent};'>{m['fn']}</td><td style='color: {accent};'>{m['tp']}</td></tr>"
-
-    neon_table_html = f"""
-    <style>
-        .mc-table-container {{
-            background: rgba(15, 23, 42, 0.8);
-            border: 1px solid #168BFF;
-            border-radius: 12px;
-            overflow: hidden;
-            margin-bottom: 40px;
-            box-shadow: 0 0 20px rgba(22, 139, 255, 0.2);
-            font-family: 'Inter', sans-serif;
-        }}
-        .mc-table {{
-            width: 100%;
-            border-collapse: collapse;
-        }}
-        .mc-table th, .mc-table td {{
-            padding: 16px 12px;
-            text-align: center;
-            border-bottom: 1px solid rgba(22, 139, 255, 0.2);
-            border-right: 1px solid rgba(22, 139, 255, 0.1);
-        }}
-        .mc-table th:last-child, .mc-table td:last-child {{
-            border-right: none;
-        }}
-        .mc-table tbody tr:last-child td {{
-            border-bottom: none;
-        }}
-        .mc-table th {{
-            background: rgba(22, 139, 255, 0.1);
-            color: #F8FAFC;
-            font-weight: 600;
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }}
-        .mc-table td {{
-            font-size: 0.95rem;
-            font-weight: 500;
-            background: rgba(2, 8, 23, 0.4);
-        }}
-        .mc-table tbody tr:hover td {{
-            background: rgba(22, 139, 255, 0.05);
-        }}
-    </style>
-    <div class="mc-table-container">
-        <table class="mc-table">
-            <thead>
-                <tr>
-                    <th style="text-align: left; padding-left: 20px;">📋 Model</th>
-                    <th>🎯 Accuracy</th>
-                    <th>📈 ROC-AUC</th>
-                    <th>📊 PR-AUC</th>
-                    <th>🔍 Recall</th>
-                    <th>⚡ Precision</th>
-                    <th>⭐ F1 Score</th>
-                    <th>TN</th>
-                    <th>FP</th>
-                    <th>FN</th>
-                    <th>TP</th>
-                </tr>
-            </thead>
-            <tbody>
-                {rows}
-            </tbody>
-        </table>
-    </div>
-    """
-    st.markdown(neon_table_html, unsafe_allow_html=True)
+    models_data = {
+        'Model': ['LogisticRegression', 'RandomForest', 'XGBoost', 'SVM'],
+        'Accuracy': [0.7224, 0.7355, 0.7425, 0.7519],
+        'ROC-AUC': [0.8213, 0.8313, 0.8385, 0.5223],
+        'PR-AUC': [0.8598, 0.8730, 0.8794, 0.2580],
+        'Recall': [0.7963, 0.7883, 0.7825, 0.0000],
+        'Precision': [0.7161, 0.7357, 0.7475, 0.0000],
+        'F1 Score': [0.7541, 0.7611, 0.7646, 0.0000],
+        'TN': [2377, 2516, 2597, None],
+        'FP': [1351, 1212, 1131, None],
+        'FN': [872, 906, 931, None],
+        'TP': [3408, 3374, 3349, None]
+    }
+    df_comparison = pd.DataFrame(models_data)
+    st.dataframe(df_comparison, use_container_width=True, hide_index=True)
         
     metrics_path = "models/metrics.json"
     
