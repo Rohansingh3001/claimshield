@@ -185,21 +185,7 @@ def render():
     rows = ""
     for m in models:
         accent = m['accent']
-        rows += f"""
-        <tr>
-            <td style="color: {accent}; font-weight: 600; text-align: left; padding-left: 20px;">{m['name']}</td>
-            <td style="color: {accent};">{m['accuracy']}</td>
-            <td style="color: {accent};">{m['roc_auc']}</td>
-            <td style="color: {accent};">{m['pr_auc']}</td>
-            <td style="color: {accent};">{m['recall']}</td>
-            <td style="color: {accent};">{m['precision']}</td>
-            <td style="color: {accent};">{m['f1']}</td>
-            <td style="color: {accent};">{m['tn']}</td>
-            <td style="color: {accent};">{m['fp']}</td>
-            <td style="color: {accent};">{m['fn']}</td>
-            <td style="color: {accent};">{m['tp']}</td>
-        </tr>
-        """
+        rows += f"<tr><td style='color: {accent}; font-weight: 600; text-align: left; padding-left: 20px;'>{m['name']}</td><td style='color: {accent};'>{m['accuracy']}</td><td style='color: {accent};'>{m['roc_auc']}</td><td style='color: {accent};'>{m['pr_auc']}</td><td style='color: {accent};'>{m['recall']}</td><td style='color: {accent};'>{m['precision']}</td><td style='color: {accent};'>{m['f1']}</td><td style='color: {accent};'>{m['tn']}</td><td style='color: {accent};'>{m['fp']}</td><td style='color: {accent};'>{m['fn']}</td><td style='color: {accent};'>{m['tp']}</td></tr>"
 
     neon_table_html = f"""
     <style>
@@ -270,6 +256,8 @@ def render():
     """
     st.markdown(neon_table_html, unsafe_allow_html=True)
         
+    metrics_path = "models/metrics.json"
+    
     # Confusion Matrix
     if os.path.exists(metrics_path):
         with open(metrics_path, 'r') as f:
