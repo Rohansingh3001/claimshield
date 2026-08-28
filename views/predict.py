@@ -148,12 +148,12 @@ def render():
         st.markdown("<hr style='border-color: var(--border); margin: 2rem 0;'>", unsafe_allow_html=True)
         
         # Determine styling based on score
-        if total_risk > 70:
+        if total_risk >= 75:
             risk_label = "HIGH RISK"
             color = "var(--danger)"
             bg_color = "rgba(239, 68, 68, 0.1)"
             decision = "INVESTIGATE"
-        elif total_risk > 30:
+        elif total_risk >= 50:
             risk_label = "MEDIUM RISK"
             color = "var(--warning)"
             bg_color = "rgba(245, 158, 11, 0.1)"
@@ -189,10 +189,20 @@ def render():
                     st.markdown("No SHAP explanations available.")
                 else:
                     visible_contributions = [c for c in top_contributions if abs(c['Contribution']) >= 0.001]
-                    if not visible_contributions:
+                    
+                    filtered_contributions = []
+                    for c in visible_contributions:
+                        feat = c['Feature'].replace('num__', '').replace('cat__', '')
+                        if feat in df_engineered.columns:
+                            raw_val = df_engineered[feat].iloc[0]
+                            if raw_val == 0 and any(p in feat for p in ['Claim_Type_', 'Policy_Type_', 'Region_', 'Gender_']):
+                                continue
+                        filtered_contributions.append(c)
+
+                    if not filtered_contributions:
                         st.markdown("No single feature had a highly significant individual impact.")
                     else:
-                        for c in visible_contributions:
+                        for c in filtered_contributions:
                             val = c['Contribution']
                             feat = c['Feature'].replace('num__', '').replace('cat__', '')
                             
