@@ -114,6 +114,7 @@ st.sidebar.markdown("""
 pages = {
     "New Claim Validator": "views.predict",
     "Executive Dashboard & Model Performance": "views.dashboard",
+    "Model Comparison": "views.model_comparison",
     "Claim Investigation": "views.investigation",
     "Claims Queue": "views.claims",
     "Batch Evaluation": "views.evaluation"
