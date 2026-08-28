@@ -138,17 +138,13 @@ def render():
     st.markdown("<h3 style='font-size: 1.1rem; color: var(--text);'>Model Comparison</h3>", unsafe_allow_html=True)
     
     models_data = {
-        'Model': ['LogisticRegression', 'RandomForest', 'XGBoost', 'SVM'],
-        'Accuracy': [0.7224, 0.7355, 0.7425, 0.7519],
-        'ROC-AUC': [0.8213, 0.8313, 0.8385, 0.5223],
-        'PR-AUC': [0.8598, 0.8730, 0.8794, 0.2580],
-        'Recall': [0.7963, 0.7883, 0.7825, 0.0000],
-        'Precision': [0.7161, 0.7357, 0.7475, 0.0000],
-        'F1 Score': [0.7541, 0.7611, 0.7646, 0.0000],
-        'TN': [2377, 2516, 2597, None],
-        'FP': [1351, 1212, 1131, None],
-        'FN': [872, 906, 931, None],
-        'TP': [3408, 3374, 3349, None]
+        'Model': ['Logistic Regression', 'Random Forest', 'XGBoost', 'SVM'],
+        'Accuracy': [0.4567, 0.7328, 0.6469, 0.7519],
+        'ROC-AUC': [0.2648, 0.5156, 0.5841, 0.5223],
+        'PR-AUC': [0.1783, 0.2650, 0.3299, 0.2580],
+        'Recall': [0.2578, 0.0619, 0.4304, 0.0000],
+        'Precision': [0.2678, 0.3083, 0.3229, 0.0000],
+        'F1 Score': [0.3136, 0.1031, 0.3673, 0.0000]
     }
     df_comparison = pd.DataFrame(models_data)
     st.dataframe(df_comparison, use_container_width=True, hide_index=True)
