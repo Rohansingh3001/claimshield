@@ -263,22 +263,11 @@ def render():
         # Average claim amount across the full dataset
         avg_claim = df['Claim_Amount'].mean()
 
-        # --- Our model (threshold = 0.35) ---
+        # --- Our model (threshold = 0.50) ---
         losses_caught      = tp * avg_claim        # money saved by catching true frauds
         losses_missed      = fn * avg_claim        # money lost from missed frauds
         investigation_cost = fp * 200              # $200 per unnecessary review (labor)
         net_savings_ours   = losses_caught - investigation_cost
-
-        # --- Hypothetical default model (threshold = 0.50) ---
-        # At 0.50, empirically recall drops ~20% → roughly 20% more FNs, fewer FPs
-        default_tp_est  = int(tp * 0.78)
-        default_fn_est  = (tp + fn) - default_tp_est
-        default_fp_est  = int(fp * 0.50)           # fewer false alarms at 0.50
-        losses_caught_default = default_tp_est * avg_claim
-        investigation_cost_default = default_fp_est * 200
-        net_savings_default = losses_caught_default - investigation_cost_default
-
-        additional_saved = net_savings_ours - net_savings_default
 
         # ── Top KPI cards ──────────────────────────────────────────────────────
         c1, c2, c3 = st.columns(3)
@@ -303,47 +292,40 @@ def render():
         with c3:
             st.markdown(f"""
             <div class="metric-card" style="border-top: 4px solid var(--primary);">
-                <div class="metric-title">Extra Savings vs Default (0.50)</div>
-                <div class="metric-value" style="color: var(--primary);">₹{additional_saved:,.0f}</div>
+                <div class="metric-title">Net Financial Benefit</div>
+                <div class="metric-value" style="color: var(--primary);">₹{net_savings_ours:,.0f}</div>
                 <p style="color: var(--text-muted); font-size: 0.82rem; margin-top: 10px; margin-bottom: 0;">
-                    Additional value from using threshold <strong style="color:var(--text);">0.35</strong> instead of 0.50
+                    Intercepted fraud value minus investigation costs.
                 </p>
             </div>""", unsafe_allow_html=True)
 
         st.markdown("<br>", unsafe_allow_html=True)
 
-        # ── Side-by-side comparison bar chart ─────────────────────────────────
+        # ── bar chart ─────────────────────────────────
         comparison_data = {
-            'Scenario': ['Default Threshold (0.50)', 'ClaimShield AI (0.35)'],
-            'Fraud Value Intercepted (₹)': [losses_caught_default, losses_caught],
-            'Investigation Overhead (₹)': [investigation_cost_default, investigation_cost],
-            'Net Financial Benefit (₹)':  [net_savings_default, net_savings_ours],
+            'Metric': ['Fraud Value Intercepted (₹)', 'Investigation Overhead (₹)', 'Net Financial Benefit (₹)'],
+            'Value': [losses_caught, investigation_cost, net_savings_ours]
         }
         df_comp = pd.DataFrame(comparison_data)
 
         fig_comp = go.Figure()
-        colors = ['#3B82F6', '#10B981', '#F59E0B']
-        for i, col in enumerate(['Fraud Value Intercepted (₹)', 'Investigation Overhead (₹)', 'Net Financial Benefit (₹)']):
-            fig_comp.add_trace(go.Bar(
-                name=col,
-                x=df_comp['Scenario'],
-                y=df_comp[col],
-                marker_color=colors[i],
-                text=[f"₹{v:,.0f}" for v in df_comp[col]],
-                textposition='outside',
-                textfont=dict(size=11, color='#F8FAFC')
-            ))
+        fig_comp.add_trace(go.Bar(
+            x=df_comp['Metric'],
+            y=df_comp['Value'],
+            marker_color=['#10B981', '#EF4444', '#3B82F6'],
+            text=[f"₹{v:,.0f}" for v in df_comp['Value']],
+            textposition='outside',
+            textfont=dict(size=11, color='#F8FAFC')
+        ))
 
         fig_comp.update_layout(
-            barmode='group',
             plot_bgcolor='rgba(0,0,0,0)',
             paper_bgcolor='rgba(0,0,0,0)',
             font=dict(color='#94A3B8', family='Inter'),
             margin=dict(l=20, r=20, t=40, b=20),
             xaxis=dict(gridcolor='#334155'),
             yaxis=dict(gridcolor='#334155', tickprefix='₹', tickformat=',.0f'),
-            legend=dict(bgcolor='rgba(0,0,0,0)', bordercolor='#334155', borderwidth=1),
-            title=dict(text='Threshold Impact: Default 0.50 vs ClaimShield 0.35', font=dict(color='#F8FAFC', size=14))
+            title=dict(text='Financial Impact Metrics (Threshold 0.50)', font=dict(color='#F8FAFC', size=14))
         )
         st.plotly_chart(fig_comp, use_container_width=True)
 
@@ -352,16 +334,13 @@ def render():
         <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16,185,129,0.3);
                     border-radius: 8px; padding: 20px 24px; margin-top: 1rem;">
             <h4 style="color: var(--success); margin-top: 0; font-size: 1rem;">
-                🔍 How the Threshold Decision Drives These Numbers
+                🔍 Impact of the 0.50 Threshold
             </h4>
             <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.7; margin-bottom: 0;">
-                By lowering the classification threshold from <strong style="color:var(--text);">0.50 → 0.35</strong>,
-                ClaimShield AI flags claims with ≥35% fraud probability instead of ≥50%.
-                This increases <strong style="color:var(--text);">Recall</strong> (catching more true frauds), which
-                directly converts to <strong style="color:var(--success);">₹{additional_saved:,.0f} in additional fraud value intercepted</strong>
-                compared to a default system. The trade-off is a small increase in
-                <strong style="color:var(--text);">investigator workload</strong> ({fp:,} extra reviews at ~₹200 each = ₹{investigation_cost:,.0f}),
-                which is <em>significantly cheaper</em> than the fraud losses it prevents.
+                By using a classification threshold of <strong style="color:var(--text);">0.50</strong>,
+                ClaimShield AI flags claims with ≥50% fraud probability.
+                This balances <strong style="color:var(--text);">Recall</strong> and <strong style="color:var(--text);">Precision</strong>,
+                providing a balanced approach to flagging claims.
                 <br><br>
                 In short: <strong style="color:var(--success);">every ₹1 spent on extra investigations saves ₹{(losses_caught / max(investigation_cost, 1)):.0f} in fraud losses.</strong>
             </p>
